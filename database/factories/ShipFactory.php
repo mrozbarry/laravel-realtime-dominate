@@ -17,7 +17,7 @@ class ShipFactory extends Factory
     public function definition(): array
     {
         return [
-            'uuid' => $this->faker->uuid,
+            'connection_id' => $this->faker->uuid,
         ];
     }
 }

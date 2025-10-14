@@ -12,22 +12,8 @@ class Ship extends Model
 
     protected $guarded = [];
 
-    protected function coordsToXy(string $coordinates): array
-    {
-        list($x, $y) = explode(',', $coordinates);
-        return [
-            'x' => floatval($x),
-            'y' => floatval($y),
-        ];
-    }
-
-    public function toArray(): array
-    {
-        return [
-            ...parent::toArray(),
-            'p' => $this->coordsToXy($this->p),
-            'v' => $this->coordsToXy($this->v),
-            'updated_at' => $this->updated_at->timestamp,
-        ];
-    }
+    protected $casts = [
+        'p' => 'object',
+        'v' => 'object',
+    ];
 }

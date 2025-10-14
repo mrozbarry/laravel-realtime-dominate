@@ -2,13 +2,15 @@
 
 namespace App\Messages;
 
-use Vehikl\Realtime\Events\Client\Message;
+use App\Models\Ship;
 
 class Move
 {
-    public function handle(array $json)
+    public function handle(MoveAttributes $attributes): void
     {
-
+        Ship::query()
+            ->where('connection_id', $attributes->clientId)
+            ->limit(1)
+            ->update($attributes->attributes);
     }
-
 }

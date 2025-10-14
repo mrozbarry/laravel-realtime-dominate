@@ -3,10 +3,12 @@
 namespace Tests\Messages;
 
 use App\Messages\Move;
+use App\Messages\MoveAttributes;
 use App\Models\Ship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Vehikl\Realtime\Events\Client\Message;
 
 class MoveTest extends TestCase
 {
@@ -17,17 +19,21 @@ class MoveTest extends TestCase
     {
         $ship = Ship::factory()->create(['angle' => 69]);
 
-        $json = [
-            'angle' => 45,
-        ];
+        $message = new Message($ship->connection_id, json_encode([
+            'angle' => 45.69,
+            'p' => ['x' => 0, 'y' => 0],
+            'v' => ['x' => 69, 'y' => 420]
+        ]));
 
+        $moveAttributes = MoveAttributes::fromMessage($message);
         $move = new Move();
-        $move->handle($json);
+        $move->handle($moveAttributes);
 
-        $ship->refresh();
-        // assert that the ship in the DB has an updated angle
-        $this->assertEquals(45, $ship->angle);
-        // assert that the ship in the DB has an updated position
-        // assert that the ship in the DB has an updated velocity
+        $this->assertDatabaseHas(Ship::class, [
+            'connection_id' => $ship->connection_id,
+            'angle' => 45.69,
+            'p' => '{"x":0,"y":0}',
+            'v' => '{"x":69,"y":420}',
+        ]);
     }
 }
