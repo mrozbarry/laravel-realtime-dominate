@@ -208,4 +208,15 @@ window.addEventListener(
     makeEventListener('keyboard', (e) => e.code, false),
 );
 
+const websocket = new WebSocket('wss://space-game.test')
+websocket.addEventListener('open', () => {
+    console.info('connected');
+})
+websocket.addEventListener('message', (e) => {
+    console.info('>>', e.data);
+})
+websocket.addEventListener('close', () => {
+    console.info('disconnected');
+})
+
 requestAnimationFrame(tick(state, canvas.getContext('2d')));

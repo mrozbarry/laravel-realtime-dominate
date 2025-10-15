@@ -2,6 +2,8 @@
 
 namespace App\Listeners;
 
+use App\Messages\Move;
+use App\Messages\MoveAttributes;
 use App\Models\Ship;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Str;
@@ -27,6 +29,7 @@ class GameInputListener
 
     public function message(Message $event): void
     {
+        app()->make(Move::class)->handle(MoveAttributes::fromMessage($event));
         // 'move' => I'm Bob, and I just updated my p, v, a ==>> broadcast to other players
     }
 
