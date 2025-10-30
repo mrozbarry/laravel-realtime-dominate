@@ -25,9 +25,8 @@ class MoveTest extends TestCase
             'v' => ['x' => 69, 'y' => 420]
         ]));
 
-        $moveAttributes = MoveAttributes::fromMessage($message);
-        $move = new Move();
-        $move->handle($moveAttributes);
+        $move = Move::fromMessage($message);
+        $move->handle();
 
         $this->assertDatabaseHas(Ship::class, [
             'connection_id' => $ship->connection_id,

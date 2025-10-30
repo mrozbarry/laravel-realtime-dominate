@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Messages\Factory;
 use App\Messages\Move;
 use App\Messages\MoveAttributes;
 use App\Models\Ship;
@@ -15,27 +16,38 @@ class GameInputListener
 {
     public function connect(Connect $event): void
     {
+        $otherShips = Ship::all();
         $ship = Ship::query()->create([
-            'uuid' => Str::uuid()->toString(),
             'connection_id' => $event->clientIdentifier,
         ]);
 
         $event->reply(json_encode([
             'type' => 'connected',
-            'you' => $ship->uuid,
-            'ship' => $ship->toArray(),
+            'you' => $ship->connection_id,
+            'ship' => $ship->refresh()->toMessage(),
         ]));
+
+        $otherShips->each(function (Ship $otherShip) use ($event) {
+            $event->reply(json_encode([
+                'type' => 'ship',
+                'id' => $otherShip->connection_id,
+                'ship' => $otherShip->toMessage(),
+            ]));
+
+        });
     }
 
     public function message(Message $event): void
     {
-        app()->make(Move::class)->handle(MoveAttributes::fromMessage($event));
-        // 'move' => I'm Bob, and I just updated my p, v, a ==>> broadcast to other players
+        app()
+            ->make(Factory::class)
+            ->get($event->clientIdentifier, $event->message)
+            ?->handle();
     }
 
     public function disconnect(Disconnect $event): void
     {
-
+        Ship::query()->whereConnectionId($event->clientIdentifier)->delete();
     }
 
     public function subscribe(Dispatcher $event)

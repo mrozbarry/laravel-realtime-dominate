@@ -59,29 +59,45 @@ export const Ship = ({p, v, angle, color, dist = 2}) => {
     ]
 }
 
-const InternalParticle = ({a, b, color, thickness, alpha}) => c(Stateful, {}, [
-    c(Properties, {
-        lineCap: 'round',
-        // lineJoin: 'round',
-        lineWidth: 2,
-        strokeStyle: color,
-        globalAlpha: alpha,
-        shadowBlur: rand.near(30 + thickness, 6),
-        shadowColor: 'red',
-    }),
-    c(Path, {isClosed: false, stroke: true}, [
-        c(MoveTo, a),
-        c(LineTo, b),
-    ])
-]);
-
 export const Particle = ({a, b, color, radius, distortion, ttl, totalTtl}) => {
     const maxAlpha = (ttl / totalTtl);
     const r = radius * maxAlpha
     return c(Stateful, {}, [
-        c(InternalParticle, {a, b, thickness: r, color, alpha: 0.7 * maxAlpha}),
+        c(Properties, {
+            lineCap: 'round',
+            // lineJoin: 'round',
+            lineWidth: 2,
+            strokeStyle: color,
+            globalAlpha: 0.9 * maxAlpha,
+            shadowBlur: rand.near(15 + r, 6),
+            shadowColor: 'red',
+        }),
+        c(Path, {isClosed: false, stroke: true}, [
+            c(MoveTo, a),
+            c(LineTo, b),
+        ])
     ]);
-}
+};
+
+export const ThrustStream = (points) => {
+    if (points.length === 0) {
+        return [];
+    }
+    const [first, ...others] = points;
+    return c(Stateful, {}, [
+        c(Properties, {
+            lineWidth: 1,
+            strokeStyle: points[0].color,
+            globalAlpha: 0.9,
+            shadowBlur: rand.near(15, 6),
+            shadowColor: points[0].color,
+        }),
+        c(Path, {isClosed: false, stroke: true}, [
+            c(MoveTo, first.p),
+            ...others.map(({ p }) => c(LineTo, p)),
+        ])
+    ]);
+};
 
 export const Camera = ({x, y}, children) => c(Stateful, {}, [
     createMutator((context) => {

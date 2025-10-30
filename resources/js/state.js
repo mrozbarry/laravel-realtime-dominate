@@ -8,6 +8,7 @@ export class State {
     constructor(initialState) {
         this.value = initialState;
         console.log('init', {...initialState})
+        this.effect = this.effect.bind(this);
     }
 
     #dig(value, keys, fallback) {
@@ -26,7 +27,12 @@ export class State {
     }
 
     update(fn) {
-        this.value = fn(this.value);
+        this.value = fn(this.value, this.effect);
+        return this;
+    }
+
+    effect(fn) {
+        requestIdleCallback(fn);
     }
 }
 
@@ -35,29 +41,89 @@ export const makeShip = (p, v = vec.make(0, 0), angle = 0) => ({
     pp: p,
     v,
     angle,
-    thrust: false,
-    break: false
-});
-
-export const init = () => new State({
-    frameStep: Math.round(1000 / 30),
-    now: null,
-    timeBuffer: 0,
-
-    ships: {
-        me: makeShip(vec.make(0, 0)),
-        ...arrays.iterate(100).reduce((ships, _) => {
-            const id = Math.random().toString(36).slice(2);
-            ships[id] = makeShip(vec.make(random.between(-10000, 10000), random.between(-10000, 10000)));
-            return ships;
-        }, {}),
+    inputs: {
+        thrust: false,
+        break: false
     },
-
-    particles: [],
 });
+
+export const init = () => {
+    return new State({
+        frameStep: Math.round(1000 / 30),
+        now: null,
+        timeBuffer: 0,
+
+        myShipId: null,
+
+        ships: {},
+
+        particles: [],
+        thrustStreams: {},
+    });
+}
+
+export const newShip = (message) => (state) => ({
+    ...state,
+    myShipId: message.you,
+    ships: {
+        ...state.ships,
+        [message.you]: message.ship
+    }
+});
+
+export const updateOtherShip = (message) => (state) => {
+    state.ships[message.id] = message.ship;
+    return state;
+}
+
+export const updateInputs = (partial, ws) => (state, fx) => {
+    const ship = state.ships[state.myShipId];
+    if (!ship) {
+        return state;
+    }
+
+    state.ships[state.myShipId] = {
+        ...ship,
+        ...partial,
+        inputs: {
+            ...ship.inputs,
+            ...(partial.inputs || {}),
+        }
+    };
+
+
+    fx(() => {
+        ws?.send(JSON.stringify({
+            type: 'move',
+            ...state.ships[state.myShipId],
+        }))
+    })
+
+    return state;
+};
 
 export const setNow = (now) => (state) => {
     state.now = now;
+    return state;
+}
+
+export const tickThrustStream = (id, delta) => (state) => {
+    state.thrustStreams[id] = (state.thrustStreams[id] || [])
+        .map(stream => {
+            stream.ttl -= delta;
+            return stream;
+        })
+        .filter(stream => stream.ttl < stream.totalTtl)
+
+    return state;
+}
+
+export const prependThrustStream = (id, color = 'red', ttl = 5000) => (state) => {
+    const ship = state.ships[id];
+    state.thrustStreams[id] ||= [];
+    if (state.thrustStreams[id].length === 0 || vec.distance(state.thrustStreams[0].p, ship.p) > 5) {
+        state.thrustStreams[id].unshift({p: ship.p, color, ttl, totalTtl: ttl});
+    }
     return state;
 }
 

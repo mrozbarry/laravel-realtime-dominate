@@ -9,7 +9,7 @@ class MoveAttributes
 {
     public array $attributes;
 
-    public function __construct(protected(set) string $clientId, protected(set) array $json)
+    public function __construct(protected string $clientId, protected array $json)
     {
         $this->attributes = Validator::make($json, $this->rules())->validate();
     }
@@ -22,13 +22,7 @@ class MoveAttributes
     protected function rules(): array
     {
         return [
-            'angle' => ['required', 'numeric', 'min:0', 'max:360'],
-            'p' => ['required', 'array'],
-            'p.x' => ['required', 'numeric'],
-            'p.y' => ['required', 'numeric'],
-            'v' => ['required', 'array'],
-            'v.x' => ['required',  'numeric'],
-            'v.y' => ['required', 'numeric'],
+
         ];
     }
 }

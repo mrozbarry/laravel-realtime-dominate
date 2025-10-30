@@ -37,3 +37,8 @@ export const fromAngleAndMagnitude = (radians, magnitude = 1) => make(
 );
 
 export const toString = (vec) => `${vec.x.toFixed(1)},${vec.y.toFixed(1)}`;
+
+export const fix = (vec, decimalPlaces = 3) => make(
+    Number(vec.x.toFixed(decimalPlaces)),
+    Number(vec.y.toFixed(decimalPlaces)),
+)

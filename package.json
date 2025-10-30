@@ -16,6 +16,6 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
-        "declarativas": "^0.1.0"
+        "declarativas": "^0.1.1"
     }
 }

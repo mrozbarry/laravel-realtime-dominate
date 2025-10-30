@@ -1,21 +1,21 @@
 import * as vec from "./vec2d.js";
 
 const simulateShip = (delta, ship) => {
-    if (ship.thrust) {
+    if (ship.inputs?.thrust) {
         const force = vec.fromAngleAndMagnitude(
             ship.angle,
             0.01 * delta,
         )
-        ship.v = vec.add(ship.v, force);
+        ship.v = vec.fix(vec.add(ship.v, force));
     }
-    if (ship.break) {
+    if (ship.inputs?.break) {
         ship.v = vec.mult(ship.v, 0.9)
         if (vec.magnitude(ship.v) < 0.05) {
             ship.v = vec.make(0, 0);
         }
     }
     ship.pp = ship.p;
-    ship.p = vec.add(ship.p, ship.v)
+    ship.p = vec.fix(vec.add(ship.p, ship.v))
 }
 
 export const simulateShips = (delta, ships) => {
